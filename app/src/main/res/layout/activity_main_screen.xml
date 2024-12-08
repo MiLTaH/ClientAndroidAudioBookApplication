@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainScreenActivity">
+    tools:context=".view.MainScreenActivity">
 
     <View
         android:id="@+id/view"
@@ -31,26 +31,6 @@
         app:layout_constraintTop_toTopOf="@+id/view" />
 
     <Button
-        android:id="@+id/FindBooksButton"
-        android:layout_width="95dp"
-        android:layout_height="40dp"
-        android:text="Поиск"
-        app:layout_constraintBottom_toBottomOf="@+id/view2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/view2" />
-
-    <EditText
-        android:id="@+id/editTextText"
-        android:layout_width="302dp"
-        android:layout_height="44dp"
-        android:ems="10"
-        android:inputType="text"
-        android:text="Поиск Книги"
-        app:layout_constraintBottom_toBottomOf="@+id/view2"
-        app:layout_constraintStart_toStartOf="@+id/view2"
-        app:layout_constraintTop_toTopOf="@+id/view2" />
-
-    <Button
         android:id="@+id/RedictToStartButton"
         android:layout_width="188dp"
         android:layout_height="51dp"
@@ -68,6 +48,43 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view" />
+
+    <LinearLayout
+        android:id="@+id/linearLayoutVerticalBooks"
+        android:layout_width="409dp"
+        android:layout_height="535dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="1dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view2">
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/FindBooksButton"
+        android:layout_width="95dp"
+        android:layout_height="40dp"
+        android:text="Поиск"
+        app:layout_constraintBottom_toBottomOf="@+id/view2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view" />
+
+    <EditText
+        android:id="@+id/editTextText"
+        android:layout_width="291dp"
+        android:layout_height="47dp"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Name"
+        app:layout_constraintBottom_toBottomOf="@+id/view2"
+        app:layout_constraintEnd_toStartOf="@+id/FindBooksButton"
+        app:layout_constraintStart_toStartOf="@+id/view2"
         app:layout_constraintTop_toBottomOf="@+id/view" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
