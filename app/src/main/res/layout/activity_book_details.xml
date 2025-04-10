@@ -62,9 +62,7 @@
         android:id="@+id/view7"
         android:layout_width="412dp"
         android:layout_height="51dp"
-        android:layout_marginBottom="2dp"
         android:background="#A9FB99"
-        app:layout_constraintBottom_toTopOf="@+id/ScrollView1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view3" />
@@ -124,15 +122,15 @@
 
     <ScrollView
         android:id="@+id/ScrollView1"
-        android:layout_width="409dp"
-        android:layout_height="406dp"
+        android:layout_width="412dp"
+        android:layout_height="358dp"
         android:layout_marginStart="1dp"
-        android:layout_marginTop="1dp"
+        android:layout_marginTop="6dp"
         android:layout_marginEnd="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view7">
+        app:layout_constraintTop_toBottomOf="@+id/view9">
 
         <LinearLayout
             android:id="@+id/LinearLayoutChapters"
@@ -140,5 +138,35 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
     </ScrollView>
+
+    <View
+        android:id="@+id/view9"
+        android:layout_width="407dp"
+        android:layout_height="52dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView13" />
+
+    <Button
+        android:id="@+id/recommend"
+        android:layout_width="204dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="4dp"
+        android:text="Похожее"
+        app:layout_constraintBottom_toTopOf="@+id/ScrollView1"
+        app:layout_constraintStart_toStartOf="@+id/view9"
+        app:layout_constraintTop_toTopOf="@+id/view9"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <Button
+        android:id="@+id/readOrCancelButton"
+        android:layout_width="202dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="2dp"
+        android:text="Прочитано/отмена"
+        app:layout_constraintBottom_toTopOf="@+id/ScrollView1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/recommend"
+        app:layout_constraintTop_toBottomOf="@+id/view7" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

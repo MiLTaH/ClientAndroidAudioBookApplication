@@ -21,6 +21,7 @@ import com.example.clientandroidaudiobookapplication.controller.MainScreenContro
 import com.example.clientandroidaudiobookapplication.models.ActorVoicesResponse;
 import com.example.clientandroidaudiobookapplication.models.FindBooksResponse;
 import com.example.clientandroidaudiobookapplication.models.GeneraAppContainer;
+import com.example.clientandroidaudiobookapplication.models.LoginRegResponse;
 import com.example.clientandroidaudiobookapplication.models.MyCallback;
 
 import java.util.List;
@@ -29,7 +30,6 @@ public class MainScreenActivity extends AppCompatActivity {
 
     public EditText editText;
     private LinearLayout linearLayout;
-
     private GeneraAppContainer app;
 
     @SuppressLint("MissingInflatedId")
@@ -58,6 +58,14 @@ public class MainScreenActivity extends AppCompatActivity {
             }
         });
         MainScreenController mainScreenActivity = new MainScreenController(this);
+        Button menuButton = findViewById(R.id.menuButton);
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainScreenActivity.this, MenuActivity.class);
+                startActivity(intent);
+            }
+        });
         Button findButton = findViewById(R.id.FindBooksButton);
         findButton.setOnClickListener(new View.OnClickListener() {
             @Override

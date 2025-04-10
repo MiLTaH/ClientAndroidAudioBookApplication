@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         }
         app = (GeneraAppContainer) getApplication();
         app.setHost(host);
-
         editLogin = findViewById(R.id.editTextLogin);
         editPassword = findViewById(R.id.editTextPassword);
     }
@@ -88,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(Object token1) {
                         LoginRegResponse response = (LoginRegResponse) token1;
                         app.setToken(response.getToken());
+                        app.setUsername(String.valueOf(getEditLogin().getText()));
                         Intent intent = new Intent(MainActivity.this, MainScreenActivity.class);
                         startActivity(intent);
                     }

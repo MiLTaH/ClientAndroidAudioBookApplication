@@ -70,6 +70,7 @@ public class RegisterActivity extends AppCompatActivity {
                     public void onSuccess(Object token1) {
                         LoginRegResponse response = (LoginRegResponse) token1;
                         app.setToken(response.getToken());
+                        app.setUsername(editLogin.toString());
                         Intent intent = new Intent(RegisterActivity.this, MainScreenActivity.class);
                         startActivity(intent);
                     }
