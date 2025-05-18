@@ -53,19 +53,6 @@ public class BookDetailsController {
         );
     }
 
-    public void loadImage(MyCallback<BookDescriptionResponse> callback,
-                          FindBooksResponse book,
-                          GeneraAppContainer app,
-                          boolean isFromLibriVox) {
-        String endpoint = isFromLibriVox
-                ? "/librivox/book-description/"
-                : "/books/";
-        String url = app.getHost() + endpoint + book.getId() + (isFromLibriVox ? "" : "/description");
-
-        Request request = createAuthorizedRequest(url, app.getToken());
-        executeRequest(request, new TypeToken<BookDescriptionResponse>() {}.getType(), callback);
-    }
-
     public void fetchChapters(MyCallback<List<ChapterResponse>> callback,
                               FindBooksResponse book,
                               ActorVoicesResponse voice,
@@ -236,51 +223,6 @@ public class BookDetailsController {
                 }
             }
         }).start();
-    }
-    private void togglePlayback(MediaPlayer player, Button button, ChapterResponse chapter) {
-        try {
-            if (player.isPlaying()) {
-                player.pause();
-                button.setText("▶️");
-            } else {
-                if (player.getCurrentPosition() == 0) {
-                    player.reset();
-                    player.setDataSource(chapter.getChapterUrl());
-                    player.prepareAsync();
-                } else {
-                    player.start();
-                    button.setText("⏸️");
-                }
-            }
-        } catch (IOException e) {
-            notifyFailure(null, "Ошибка воспроизведения: " + e.getMessage());
-        }
-    }
-
-    private void setupMediaPlayerListeners(MediaPlayer player, Button button, SeekBar bar) {
-        player.setOnPreparedListener(mp -> {
-            bar.setMax(mp.getDuration());
-            mp.start();
-            button.setText("⏸️");
-        });
-        player.setOnCompletionListener(mp -> {
-            button.setText("▶️");
-            bar.setProgress(0);
-        });
-        player.setOnErrorListener((mp, what, extra) -> {
-            notifyFailure(null, "Ошибка медиаплеера: " + what);
-            return true;
-        });
-    }
-
-    private void setupSeekBarListener(MediaPlayer player, SeekBar bar) {
-        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) player.seekTo(progress);
-            }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
     }
 
     private Request createAuthorizedRequest(String url, String token) {
