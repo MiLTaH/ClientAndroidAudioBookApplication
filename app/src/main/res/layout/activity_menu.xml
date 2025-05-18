@@ -7,6 +7,17 @@
     android:layout_height="match_parent"
     tools:context=".view.MenuActivity">
 
+    <Button
+        android:id="@+id/extendedSearchButton"
+        android:layout_width="405dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="7dp"
+        android:text="Расширенный поиск"
+        app:layout_constraintBottom_toBottomOf="@+id/view8"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/popularButton" />
+
     <View
         android:id="@+id/view4"
         android:layout_width="410dp"
@@ -33,10 +44,11 @@
 
     <View
         android:id="@+id/view8"
-        android:layout_width="413dp"
-        android:layout_height="131dp"
-        android:layout_marginTop="1dp"
+        android:layout_width="408dp"
+        android:layout_height="198dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view4" />
 
@@ -53,12 +65,10 @@
         android:id="@+id/popularButton"
         android:layout_width="405dp"
         android:layout_height="65dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="2dp"
         android:text="Популярное"
-        app:layout_constraintBottom_toBottomOf="@+id/view8"
-        app:layout_constraintEnd_toEndOf="@+id/view8"
-        app:layout_constraintStart_toStartOf="@+id/view8"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/mainScreenActivity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

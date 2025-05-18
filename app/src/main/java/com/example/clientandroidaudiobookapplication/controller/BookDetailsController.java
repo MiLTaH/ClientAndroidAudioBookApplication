@@ -1,12 +1,12 @@
 package com.example.clientandroidaudiobookapplication.controller;
 
 import android.media.MediaPlayer;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.graphics.Color;
 
 import com.bumptech.glide.Glide;
 import com.example.clientandroidaudiobookapplication.models.ActorVoicesResponse;
@@ -15,10 +15,12 @@ import com.example.clientandroidaudiobookapplication.models.ChapterResponse;
 import com.example.clientandroidaudiobookapplication.models.FindBooksResponse;
 import com.example.clientandroidaudiobookapplication.models.GeneraAppContainer;
 import com.example.clientandroidaudiobookapplication.models.MyCallback;
-import com.example.clientandroidaudiobookapplication.models.SubscribeRequest;
 import com.example.clientandroidaudiobookapplication.view.BookDetailsActivity;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import android.widget.Toast;
+import android.view.ContextThemeWrapper;
+
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -32,6 +34,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class BookDetailsController {
+
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private final BookDetailsActivity activity;
@@ -40,6 +43,7 @@ public class BookDetailsController {
     public BookDetailsController(BookDetailsActivity activity) {
         this.activity = activity;
     }
+
     public void loadImage(String imageUrl, ImageView imageView) {
         activity.runOnUiThread(() ->
                 Glide.with(activity)
@@ -48,69 +52,234 @@ public class BookDetailsController {
                         .into(imageView)
         );
     }
+
+    public void loadImage(MyCallback<BookDescriptionResponse> callback,
+                          FindBooksResponse book,
+                          GeneraAppContainer app,
+                          boolean isFromLibriVox) {
+        String endpoint = isFromLibriVox
+                ? "/librivox/book-description/"
+                : "/books/";
+        String url = app.getHost() + endpoint + book.getId() + (isFromLibriVox ? "" : "/description");
+
+        Request request = createAuthorizedRequest(url, app.getToken());
+        executeRequest(request, new TypeToken<BookDescriptionResponse>() {}.getType(), callback);
+    }
+
     public void fetchChapters(MyCallback<List<ChapterResponse>> callback,
                               FindBooksResponse book,
-                              ActorVoicesResponse actorVoice,
+                              ActorVoicesResponse voice,
                               GeneraAppContainer app) {
-        String url = String.format("%s/chapters/%d/%d", app.getHost(), book.getId(), actorVoice.getId());
+        String url = String.format("%s/chapters/%d/%d", app.getHost(), book.getId(), voice.getId());
         Request request = createAuthorizedRequest(url, app.getToken());
-        executeRequest(request, new TypeToken<List<ChapterResponse>>(){}.getType(), callback);
+        executeRequest(request, new TypeToken<List<ChapterResponse>>() {}.getType(), callback);
     }
+
     public void getBookImage(MyCallback<BookDescriptionResponse> callback,
                              FindBooksResponse book,
                              GeneraAppContainer app) {
         String url = String.format("%s/books/%d/description", app.getHost(), book.getId());
         Request request = createAuthorizedRequest(url, app.getToken());
-        executeRequest(request, new TypeToken<BookDescriptionResponse>(){}.getType(), callback);
+        executeRequest(request, new TypeToken<BookDescriptionResponse>() {}.getType(), callback);
     }
+
     public void subscribeOrCancelBook(MyCallback<String> callback,
                                       String userName,
                                       String bookName,
                                       GeneraAppContainer app) {
         try {
-            String jsonBody = String.format("{\n" +
-                    "  \"userName\": \"%s\",\n" +
-                    "  \"bookName\": \"%s\"\n" +
-                    "}", userName, bookName);
-            Log.println(Log.ASSERT, String.valueOf(1), userName);
+            String json = String.format("{\"userName\":\"%s\",\"bookName\":\"%s\"}", userName, bookName);
             Request request = new Request.Builder()
                     .url(app.getHost() + "/user/subscribeUserToBook")
                     .addHeader("Authorization", "Bearer " + app.getToken())
                     .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(jsonBody, MediaType.parse("application/json")))
+                    .post(RequestBody.create(json, JSON))
                     .build();
-            app.getClient().newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    activity.runOnUiThread(() ->
-                            callback.onFailure("Network error: " + e.getMessage()));
-                }
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    String responseBody = response.body().string();
-                    activity.runOnUiThread(() -> {
-                        if (response.isSuccessful()) {
-                            callback.onSuccess(responseBody);
-                        } else {
-                            callback.onFailure("Server error " + response.code() + ": " + responseBody);
-                        }
-                    });
-                }
-            });
+
+            executeStringRequest(request, callback);
         } catch (Exception e) {
-            activity.runOnUiThread(() ->
-                    callback.onFailure("Request creation error: " + e.getMessage()));
+            notifyFailure(callback, "Ошибка при создании запроса: " + e.getMessage());
         }
     }
-    public void updateChapters(List<ChapterResponse> chapters, LinearLayout chaptersLayout) {
-        activity.runOnUiThread(() -> {
-            chaptersLayout.removeAllViews();
 
+    public void updateChapters(List<ChapterResponse> chapters, LinearLayout layout) {
+        activity.runOnUiThread(() -> {
+            layout.removeAllViews();
             for (ChapterResponse chapter : chapters) {
                 LinearLayout chapterRow = createChapterRow(chapter);
-                chaptersLayout.addView(chapterRow);
+                layout.addView(chapterRow);
                 setupChapterPlayer(chapter, chapterRow);
             }
+        });
+    }
+
+    public void fetchLibriVoxLinks(MyCallback<List<ChapterResponse>> callback,
+                                   FindBooksResponse book,
+                                   GeneraAppContainer app) {
+        String url = String.format("%s/librivox/%d/chapters", app.getHost(), book.getId());
+        Request request = createAuthorizedRequest(url, app.getToken());
+        executeRequest(request, new TypeToken<List<ChapterResponse>>() {}.getType(), callback);
+    }
+
+    public void getLibriVoxDescription(MyCallback<BookDescriptionResponse> callback,
+                                       FindBooksResponse book,
+                                       GeneraAppContainer app) {
+        String url = String.format("%s/librivox/book/description/%d", app.getHost(), book.getId());
+        Request request = createAuthorizedRequest(url, app.getToken());
+        executeRequest(request, new TypeToken<BookDescriptionResponse>() {}.getType(), callback);
+    }
+
+    private LinearLayout createChapterRow(ChapterResponse chapter) {
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(0, 16, 0, 16);
+        row.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        TextView title = new TextView(activity);
+        title.setText(chapter.getNameChapter());
+        title.setTextSize(16);
+        title.setPadding(16, 8, 16, 8);
+
+        LinearLayout controls = new LinearLayout(activity);
+        controls.setOrientation(LinearLayout.HORIZONTAL);
+        controls.setPadding(16, 8, 16, 8);
+
+        // Кнопка воспроизведения
+        Button playPause = new Button(activity);
+        playPause.setText("▶️");
+        playPause.setPadding(16, 8, 16, 8);
+        playPause.setBackgroundColor(Color.LTGRAY);
+        playPause.setAllCaps(false);
+
+        // Обычный SeekBar без стиля Material
+        SeekBar seekBar = new SeekBar(new ContextThemeWrapper(activity, android.R.style.Widget_SeekBar));
+        seekBar.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        seekBar.setMax(100);
+        seekBar.setProgress(0);
+
+        controls.addView(playPause);
+        controls.addView(seekBar);
+
+        row.addView(title);
+        row.addView(controls);
+
+        return row;
+    }
+    private void setupChapterPlayer(ChapterResponse chapter, LinearLayout chapterRow) {
+        LinearLayout controlsLayout = (LinearLayout) chapterRow.getChildAt(1);
+        Button playPauseButton = (Button) controlsLayout.getChildAt(0);
+        SeekBar seekBar = (SeekBar) controlsLayout.getChildAt(1);
+
+        MediaPlayer mediaPlayer = new MediaPlayer();
+
+        playPauseButton.setOnClickListener(v -> {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                playPauseButton.setText("▶️");
+            } else {
+                try {
+                    if (mediaPlayer.getCurrentPosition() > 0) {
+                        mediaPlayer.start();
+                        playPauseButton.setText("⏸️");
+                    } else {
+                        mediaPlayer.reset();
+                        mediaPlayer.setDataSource(chapter.getChapterUrl());
+                        mediaPlayer.setOnPreparedListener(mp -> {
+                            seekBar.setMax(mp.getDuration());
+                            mp.start();
+                            playPauseButton.setText("⏸️");
+                            startProgressUpdater(mediaPlayer, seekBar);
+                        });
+                        mediaPlayer.setOnCompletionListener(mp -> {
+                            playPauseButton.setText("▶️");
+                            seekBar.setProgress(0);
+                        });
+                        mediaPlayer.prepareAsync();
+                    }
+                } catch (IOException e) {
+                    Toast.makeText(activity, "Ошибка воспроизведения: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser && mediaPlayer != null) {
+                    mediaPlayer.seekTo(progress);
+                }
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+    }
+
+    private void startProgressUpdater(MediaPlayer mediaPlayer, SeekBar seekBar) {
+        new Thread(() -> {
+            while (mediaPlayer != null) {
+                try {
+                    if (mediaPlayer.isPlaying()) {
+                        int position = mediaPlayer.getCurrentPosition();
+                        activity.runOnUiThread(() -> seekBar.setProgress(position));
+                    }
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception ignored) {
+                    break;
+                }
+            }
+        }).start();
+    }
+    private void togglePlayback(MediaPlayer player, Button button, ChapterResponse chapter) {
+        try {
+            if (player.isPlaying()) {
+                player.pause();
+                button.setText("▶️");
+            } else {
+                if (player.getCurrentPosition() == 0) {
+                    player.reset();
+                    player.setDataSource(chapter.getChapterUrl());
+                    player.prepareAsync();
+                } else {
+                    player.start();
+                    button.setText("⏸️");
+                }
+            }
+        } catch (IOException e) {
+            notifyFailure(null, "Ошибка воспроизведения: " + e.getMessage());
+        }
+    }
+
+    private void setupMediaPlayerListeners(MediaPlayer player, Button button, SeekBar bar) {
+        player.setOnPreparedListener(mp -> {
+            bar.setMax(mp.getDuration());
+            mp.start();
+            button.setText("⏸️");
+        });
+        player.setOnCompletionListener(mp -> {
+            button.setText("▶️");
+            bar.setProgress(0);
+        });
+        player.setOnErrorListener((mp, what, extra) -> {
+            notifyFailure(null, "Ошибка медиаплеера: " + what);
+            return true;
+        });
+    }
+
+    private void setupSeekBarListener(MediaPlayer player, SeekBar bar) {
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) player.seekTo(progress);
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
     }
 
@@ -124,21 +293,18 @@ public class BookDetailsController {
     private <T> void executeRequest(Request request, Type type, MyCallback<T> callback) {
         GeneraAppContainer app = (GeneraAppContainer) activity.getApplication();
         app.getClient().newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+            @Override public void onFailure(Call call, IOException e) {
                 notifyFailure(callback, "Ошибка запроса: " + e.getMessage());
             }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            @Override public void onResponse(Call call, Response response) throws IOException {
                 if (response.body() == null) {
                     notifyFailure(callback, "Пустой ответ от сервера.");
                     return;
                 }
-                String responseBody = response.body().string();
+                String body = response.body().string();
                 if (response.isSuccessful()) {
                     try {
-                        T result = gson.fromJson(responseBody, type);
+                        T result = gson.fromJson(body, type);
                         notifySuccess(callback, result);
                     } catch (Exception e) {
                         notifyFailure(callback, "Ошибка обработки данных: " + e.getMessage());
@@ -153,127 +319,27 @@ public class BookDetailsController {
     private void executeStringRequest(Request request, MyCallback<String> callback) {
         GeneraAppContainer app = (GeneraAppContainer) activity.getApplication();
         app.getClient().newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+            @Override public void onFailure(Call call, IOException e) {
                 notifyFailure(callback, "Ошибка запроса: " + e.getMessage());
             }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.body() == null) {
-                    notifyFailure(callback, "Пустой ответ от сервера.");
-                    return;
-                }
-
-                String responseBody = response.body().string();
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                String body = response.body() != null ? response.body().string() : "";
                 if (response.isSuccessful()) {
-                    notifySuccess(callback, responseBody);
+                    notifySuccess(callback, body);
                 } else {
                     notifyFailure(callback, "Ошибка сервера: " + response.code());
                 }
             }
         });
     }
+
     private <T> void notifySuccess(MyCallback<T> callback, T result) {
-        activity.runOnUiThread(() -> callback.onSuccess(result));
+        if (callback != null)
+            activity.runOnUiThread(() -> callback.onSuccess(result));
     }
+
     private <T> void notifyFailure(MyCallback<T> callback, String error) {
-        activity.runOnUiThread(() -> callback.onFailure(error));
-    }
-    private LinearLayout createChapterRow(ChapterResponse chapter) {
-        LinearLayout chapterRow = new LinearLayout(activity);
-        chapterRow.setOrientation(LinearLayout.VERTICAL);
-        chapterRow.setPadding(0, 16, 0, 16);
-        TextView chapterTitle = new TextView(activity);
-        chapterTitle.setText(chapter.getNameChapter());
-        chapterTitle.setTextSize(16);
-        chapterTitle.setPadding(16, 8, 16, 8);
-        LinearLayout controlsLayout = new LinearLayout(activity);
-        controlsLayout.setOrientation(LinearLayout.HORIZONTAL);
-        Button playPauseButton = new Button(activity);
-        playPauseButton.setText("▶️");
-        playPauseButton.setPadding(16, 8, 16, 8);
-        SeekBar seekBar = new SeekBar(activity);
-        seekBar.setPadding(16, 8, 16, 8);
-        seekBar.setMax(100);
-        controlsLayout.addView(playPauseButton);
-        controlsLayout.addView(seekBar);
-        chapterRow.addView(chapterTitle);
-        chapterRow.addView(controlsLayout);
-        return chapterRow;
-    }
-    private void setupChapterPlayer(ChapterResponse chapter, LinearLayout chapterRow) {
-        LinearLayout controlsLayout = (LinearLayout) chapterRow.getChildAt(1);
-        Button playPauseButton = (Button) controlsLayout.getChildAt(0);
-        SeekBar seekBar = (SeekBar) controlsLayout.getChildAt(1);
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        playPauseButton.setOnClickListener(v -> togglePlayback(mediaPlayer, playPauseButton, chapter));
-        setupMediaPlayerListeners(mediaPlayer, playPauseButton, seekBar);
-        setupSeekBarListener(mediaPlayer, seekBar);
-        startProgressUpdater(mediaPlayer, seekBar);
-    }
-    private void togglePlayback(MediaPlayer mediaPlayer, Button button, ChapterResponse chapter) {
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-            button.setText("▶️");
-        } else {
-            try {
-                if (mediaPlayer.getCurrentPosition() == 0) {
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(chapter.getChapterUrl());
-                    mediaPlayer.prepareAsync();
-                } else {
-                    mediaPlayer.start();
-                    button.setText("⏸️");
-                }
-            } catch (IOException e) {
-                notifyFailure(null, "Ошибка воспроизведения: " + e.getMessage());
-            }
-        }
-    }
-    private void setupMediaPlayerListeners(MediaPlayer mediaPlayer, Button button, SeekBar seekBar) {
-        mediaPlayer.setOnPreparedListener(mp -> {
-            seekBar.setMax(mp.getDuration());
-            mp.start();
-            button.setText("⏸️");
-        });
-        mediaPlayer.setOnCompletionListener(mp -> {
-            button.setText("▶️");
-            seekBar.setProgress(0);
-        });
-        mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-            notifyFailure(null, "Ошибка медиаплеера: " + what);
-            return true;
-        });
-    }
-    private void setupSeekBarListener(MediaPlayer mediaPlayer, SeekBar seekBar) {
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && mediaPlayer != null) {
-                    mediaPlayer.seekTo(progress);
-                }
-            }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-    }
-    private void startProgressUpdater(MediaPlayer mediaPlayer, SeekBar seekBar) {
-        new Thread(() -> {
-            while (mediaPlayer != null) {
-                try {
-                    if (mediaPlayer.isPlaying()) {
-                        int currentPosition = mediaPlayer.getCurrentPosition();
-                        activity.runOnUiThread(() -> seekBar.setProgress(currentPosition));
-                    }
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        }).start();
+        if (callback != null)
+            activity.runOnUiThread(() -> callback.onFailure(error));
     }
 }

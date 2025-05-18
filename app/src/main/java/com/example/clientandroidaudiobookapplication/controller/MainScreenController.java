@@ -18,7 +18,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MainScreenController {
-    MainScreenActivity mainScreenActivity;
+    private MainScreenActivity mainScreenActivity;
 
     public MainScreenController(MainScreenActivity mainScreenActivity) {
         this.mainScreenActivity = mainScreenActivity;

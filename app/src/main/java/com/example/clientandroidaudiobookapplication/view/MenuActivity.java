@@ -50,5 +50,13 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        Button extendedSearchActivity = findViewById(R.id.extendedSearchButton);
+        extendedSearchActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MenuActivity.this, ExtendedSearchActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }
