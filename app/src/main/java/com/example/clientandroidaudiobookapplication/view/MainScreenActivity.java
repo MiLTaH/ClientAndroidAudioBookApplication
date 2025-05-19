@@ -136,8 +136,8 @@ public class MainScreenActivity extends AppCompatActivity {
                             Intent intent = new Intent(MainScreenActivity.this, BookDetailsActivity.class);
                             intent.putExtra("BOOK_NAME", book.getBookName());
                             intent.putExtra("SELECTED_VOICE", selectedVoice);
-                            intent.putExtra("VOICE_ID", String.valueOf(selectedID));
-                            intent.putExtra("BOOK_ID", String.valueOf(book.getId()));
+                            intent.putExtra("VOICE_ID", selectedID);
+                            intent.putExtra("BOOK_ID", book.getId());
                             intent.putExtra("AUTHOR", book.getAuthorName());
                             startActivity(intent);
                         });

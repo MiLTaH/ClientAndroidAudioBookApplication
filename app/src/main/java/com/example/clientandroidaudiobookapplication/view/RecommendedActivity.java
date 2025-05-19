@@ -132,8 +132,8 @@ public class RecommendedActivity extends AppCompatActivity {
             Intent intent = new Intent(RecommendedActivity.this, BookDetailsActivity.class);
             intent.putExtra("BOOK_NAME", book.getBookName());
             intent.putExtra("SELECTED_VOICE", voiceNames[which]);
-            intent.putExtra("VOICE_ID", String.valueOf(voiceIds[which]));
-            intent.putExtra("BOOK_ID", String.valueOf(book.getId()));
+            intent.putExtra("VOICE_ID", voiceIds[which]);
+            intent.putExtra("BOOK_ID", book.getId());
             intent.putExtra("AUTHOR", book.getAuthorName());
             startActivity(intent);
         });

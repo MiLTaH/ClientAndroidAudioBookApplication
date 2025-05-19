@@ -73,14 +73,14 @@ public class BookDetailsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         isFromLibriVox = intent.getBooleanExtra("IS_LIBRIVOX", false);
         currentBook = new FindBooksResponse(
-                Integer.parseInt(intent.getStringExtra("BOOK_ID")),
+                intent.getIntExtra("BOOK_ID", -1),
                 intent.getStringExtra("BOOK_NAME"),
                 intent.getStringExtra("AUTHOR")
         );
         currentVoice = isFromLibriVox ?
                 new ActorVoicesResponse(-1, "LibriVox") :
                 new ActorVoicesResponse(
-                        Integer.parseInt(intent.getStringExtra("VOICE_ID")),
+                        intent.getIntExtra("VOICE_ID", -1),
                         intent.getStringExtra("SELECTED_VOICE")
                 );
     }
