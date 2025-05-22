@@ -61,7 +61,9 @@ public class RecommendedController {
                         JSONArray jsonArray = new JSONArray(responseBody);
                         List<String> genres = new ArrayList<>();
                         for (int i = 0; i < jsonArray.length(); i++) {
-                            genres.add(jsonArray.getString(i));
+                            JSONObject genreObject = jsonArray.getJSONObject(i);
+                            String genre = genreObject.getString("genre");
+                            genres.add(genre);
                         }
                         recommendedActivity.runOnUiThread(() -> callback.onSuccess(genres));
                     } catch (Exception e) {
